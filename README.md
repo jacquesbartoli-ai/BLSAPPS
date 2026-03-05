@@ -113,3 +113,21 @@ Le parseur OCR est volontairement laissé en placeholder:
 - Plusieurs factures fournisseurs réelles (PDF/scans) pour entraîner les règles de mapping (produit, qty, prix, date, fournisseur)
 
 Dès réception des factures exemples, j’active le mapping OCR structuré et la création automatique des lots.
+
+## Obtenir GOOGLE_OAUTH_REFRESH_TOKEN (Google Drive)
+
+Depuis le backend:
+
+```bash
+npm run google:oauth:url --workspace @bartoli/api
+```
+
+1. Ouvrir l’URL affichée et autoriser l’accès Drive.
+2. Copier le paramètre `code` renvoyé par Google sur `http://localhost/?code=...`.
+3. Lancer:
+
+```bash
+npm run google:oauth:exchange --workspace @bartoli/api -- "CODE_ICI"
+```
+
+Le script affiche `GOOGLE_OAUTH_REFRESH_TOKEN` à coller dans `.env`.
