@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #183027;
+  background: #f6f1e8;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* Portrait par défaut */
+@media (orientation: portrait) {
+  body {
+    font-size: 16px;
+  }
+}
+
+/* Landscape pour vues étendues (tables/listes) */
+@media (orientation: landscape) {
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "charcuterie-business-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "npm run dev --workspace @bartoli/web",
+    "dev:api": "npm run dev --workspace @bartoli/api",
+    "build": "npm run build --workspace @bartoli/web && npm run build --workspace @bartoli/api",
+    "lint": "npm run lint --workspace @bartoli/web && npm run lint --workspace @bartoli/api",
+    "format": "npm run format --workspace @bartoli/web && npm run format --workspace @bartoli/api",
+    "prisma:generate": "npm run prisma:generate --workspace @bartoli/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace @bartoli/api",
+    "seed:admin": "npm run seed:admin --workspace @bartoli/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

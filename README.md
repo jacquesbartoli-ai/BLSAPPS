@@ -1,64 +1,114 @@
-Example plain HTML site using GitLab Pages.
+# Bartoli — PWA métier charcuterie artisanale
 
-Learn more about GitLab Pages at https://pages.gitlab.io and the official
-documentation https://docs.gitlab.com/ce/user/project/pages/.
+Application web progressive (PWA) sécurisée pour la gestion:
+- stock & matières premières
+- recettes
+- fabrication / lots
+- traçabilité HACCP
+- commandes, BL signés, avoirs
+- sauvegardes Google Drive
+- intégration Odoo
 
----
+## Stack
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+- **Frontend**: React + Vite + TailwindCSS + base shadcn/ui
+- **Backend**: Node.js + Express + TypeScript
+- **DB**: PostgreSQL + Prisma ORM
+- **Auth**: JWT + chemin secret URL
+- **PWA**: `vite-plugin-pwa`
+- **PDF**: `@react-pdf/renderer`
+- **Signature**: `signature_pad`
+- **Backups**: node-cron + Google Drive API
+- **Odoo**: JSON-RPC / REST wrapper
 
-- [GitLab CI](#gitlab-ci)
-- [GitLab User or Group Pages](#gitlab-user-or-group-pages)
-- [Did you fork this project?](#did-you-fork-this-project)
-- [Troubleshooting](#troubleshooting)
+## Arborescence
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-## GitLab CI
-
-This project's static Pages are built by [GitLab CI][ci], following the steps
-defined in [`.gitlab-ci.yml`](.gitlab-ci.yml):
-
+```txt
+.
+├── apps
+│   ├── api
+│   │   ├── prisma
+│   │   │   └── schema.prisma
+│   │   └── src
+│   │       ├── config
+│   │       ├── jobs
+│   │       ├── lib
+│   │       ├── middleware
+│   │       ├── routes
+│   │       ├── scripts
+│   │       ├── services
+│   │       │   ├── ocr
+│   │       │   └── pdf
+│   │       └── utils
+│   └── web
+│       ├── public
+│       └── src
+│           ├── components
+│           ├── lib
+│           └── pages
+├── .env.example
+└── docker-compose.yml
 ```
-image: busybox
 
-pages:
-  stage: deploy
-  script:
-  - echo 'Nothing to do...'
-  artifacts:
-    paths:
-    - public
-    expire_in: 1 day
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-```
+## Sécurité implémentée dans le scaffold
 
-The above example expects to put all your HTML files in the `public/` directory.
+- App/API montée derrière un **chemin secret**: `/${APP_SECRET_PATH}`
+- Auth JWT (access + refresh)
+- Rôles (`admin`, `commercial`, `livreur`)
+- Routes API protégées sauf login
+- Middleware d’exigence HTTPS en production
+- Rate limiting + Helmet + CORS strict
 
-## GitLab User or Group Pages
+## Démarrage local
 
-To use this project as your user/group website, you will need one additional
-step: just rename your project to `namespace.gitlab.io`, where `namespace` is
-your `username` or `groupname`. This can be done by navigating to your
-project's **Settings**.
+1. Copier les variables d’environnement:
+   ```bash
+   cp .env.example .env
+   ```
+2. Démarrer PostgreSQL:
+   ```bash
+   docker compose up -d
+   ```
+3. Installer les dépendances:
+   ```bash
+   npm install
+   ```
+4. Générer Prisma + migrer:
+   ```bash
+   npm run prisma:generate --workspace @bartoli/api
+   npm run prisma:migrate --workspace @bartoli/api -- --name init
+   ```
+5. Créer un admin:
+   ```bash
+   npm run seed:admin --workspace @bartoli/api
+   ```
+6. Lancer web + API:
+   ```bash
+   npm run dev
+   ```
 
-Read more about [user/group Pages][userpages] and [project Pages][projpages].
+## Schéma Prisma
 
-## Did you fork this project?
+Le schéma couvre:
+- utilisateurs / rôles / tokens
+- ingrédients, fournisseurs, factures, lots, analyses labo
+- recettes et intrants
+- fabrications, journal de prod, usages de lots, sorties clients, sèche
+- clients, commandes, lignes, BL, signatures, avoirs, photos
+- HACCP (checklists + tâches signées + non-conformités)
+- événements de traçabilité
+- réglages et logs de backup
 
-If you forked this project for your own use, please go to your project's
-**Settings** and remove the forking relationship, which won't be necessary
-unless you want to contribute back to the upstream project.
+Fichier: `apps/api/prisma/schema.prisma`
 
-## Troubleshooting
+## État OCR
 
-1. CSS is missing! That means that you have wrongly set up the CSS URL in your
-   HTML files. Have a look at the [index.html] for an example.
+Le parseur OCR est volontairement laissé en placeholder:
+`apps/api/src/services/ocr/ocr-invoice.service.ts`
 
-[ci]: https://about.gitlab.com/gitlab-ci/
-[index.html]: https://gitlab.com/pages/plain-html/blob/master/public/index.html
-[userpages]: https://docs.gitlab.com/ce/user/project/pages/introduction.html#user-or-group-pages
-[projpages]: https://docs.gitlab.com/ce/user/project/pages/introduction.html#project-pages
+👉 Merci de fournir:
+- identifiants Odoo (URL, DB, user, clé/API token)
+- ID du dossier Google Drive cible
+- plusieurs factures fournisseurs réelles (PDF/scans)
+
+Dès réception, j’implémente l’extracteur OCR avec mapping robuste et création automatique des lots.
