@@ -14,7 +14,9 @@
     "prisma:studio": "prisma studio",
     "seed:admin": "tsx src/scripts/seed-admin.ts",
     "google:oauth:url": "tsx src/scripts/google-oauth-drive.ts url",
-    "google:oauth:exchange": "tsx src/scripts/google-oauth-drive.ts exchange"
+    "google:oauth:exchange": "tsx src/scripts/google-oauth-drive.ts exchange",
+    "drive:download:invoices": "tsx src/scripts/drive-download-folder.ts",
+    "ocr:test:invoices": "tsx src/scripts/ocr-test-invoices.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
@@ -32,6 +34,7 @@
     "multer": "^2.1.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
+    "pdf-parse": "^2.4.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

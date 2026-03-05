@@ -114,6 +114,20 @@ Le parseur OCR est volontairement laissé en placeholder:
 
 Dès réception des factures exemples, j’active le mapping OCR structuré et la création automatique des lots.
 
+### Tester OCR avec factures Google Drive
+
+1. Renseigner l’ID du dossier factures:
+   - `GOOGLE_OCR_SAMPLE_FOLDER_ID=...`
+2. Télécharger les factures dans `data/invoices`:
+   ```bash
+   npm run drive:download:invoices --workspace @bartoli/api
+   ```
+3. Lancer le test OCR batch:
+   ```bash
+   npm run ocr:test:invoices --workspace @bartoli/api
+   ```
+   Le rapport est généré dans `data/invoices/ocr-report.json`.
+
 ## Obtenir GOOGLE_OAUTH_REFRESH_TOKEN (Google Drive)
 
 Depuis le backend:
