@@ -337,38 +337,70 @@ router.post(
   })
 );
 
-router.get("/fiches-lot", requireRole(["admin", "commercial"]), async (_req, res) => {
-  res.json({ message: "TODO: document central de traçabilité." });
-});
+router.get(
+  "/fiches-lot",
+  requireRole(["admin", "commercial"]),
+  asyncHandler(async (_req, res) => {
+    res.json({ message: "TODO: document central de traçabilité." });
+  })
+);
 
-router.get("/commandes", requireRole(["admin", "commercial"]), async (_req, res) => {
-  res.json({ message: "TODO: intégration Odoo et consolidation commandes." });
-});
+router.get(
+  "/commandes",
+  requireRole(["admin", "commercial"]),
+  asyncHandler(async (_req, res) => {
+    res.json({ message: "TODO: intégration Odoo et consolidation commandes." });
+  })
+);
 
-router.get("/bl", requireRole(["admin", "livreur"]), async (_req, res) => {
-  res.json({ message: "TODO: bons de livraison + signature selfie GPS." });
-});
+router.get(
+  "/bl",
+  requireRole(["admin", "livreur"]),
+  asyncHandler(async (_req, res) => {
+    res.json({ message: "TODO: bons de livraison + signature selfie GPS." });
+  })
+);
 
-router.get("/avoirs", requireRole(["admin", "commercial"]), async (_req, res) => {
-  res.json({ message: "TODO: génération avoir + photos obligatoires." });
-});
+router.get(
+  "/avoirs",
+  requireRole(["admin", "commercial"]),
+  asyncHandler(async (_req, res) => {
+    res.json({ message: "TODO: génération avoir + photos obligatoires." });
+  })
+);
 
-router.get("/haccp", requireRole(["admin", "commercial"]), async (_req, res) => {
-  res.json({ message: "TODO: checklist nettoyage + non-conformités." });
-});
+router.get(
+  "/haccp",
+  requireRole(["admin", "commercial"]),
+  asyncHandler(async (_req, res) => {
+    res.json({ message: "TODO: checklist nettoyage + non-conformités." });
+  })
+);
 
-router.get("/traceabilite", requireRole(["admin", "commercial"]), async (_req, res) => {
-  res.json({ message: "TODO: recherche lot / date / client / produit." });
-});
+router.get(
+  "/traceabilite",
+  requireRole(["admin", "commercial"]),
+  asyncHandler(async (_req, res) => {
+    res.json({ message: "TODO: recherche lot / date / client / produit." });
+  })
+);
 
-router.post("/settings/backups/run", requireRole(["admin"]), async (_req, res) => {
-  const backup = await performBackupNow();
-  res.json(backup);
-});
+router.post(
+  "/settings/backups/run",
+  requireRole(["admin"]),
+  asyncHandler(async (_req, res) => {
+    const backup = await performBackupNow();
+    res.json(backup);
+  })
+);
 
-router.get("/pdfs/demo", requireRole(["admin", "commercial"]), async (_req, res) => {
-  const files = await generateDemoPdfs();
-  res.json({ files });
-});
+router.get(
+  "/pdfs/demo",
+  requireRole(["admin", "commercial"]),
+  asyncHandler(async (_req, res) => {
+    const files = await generateDemoPdfs();
+    res.json({ files });
+  })
+);
 
 export { router as protectedRouter };

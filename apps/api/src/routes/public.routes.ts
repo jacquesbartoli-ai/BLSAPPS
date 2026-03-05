@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { signAccessToken, signRefreshToken, verifyPassword } from "../services/auth.service.js";
@@ -6,11 +7,19 @@ import type { UserRole } from "../types/role.js";
 
 const router = Router();
 
+function asyncHandler(
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>
+): RequestHandler {
+  return (req, res, next) => {
+    fn(req, res, next).catch(next);
+  };
+}
+
 router.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-router.post("/auth/login", async (req, res) => {
+router.post("/auth/login", asyncHandler(async (req, res) => {
   const bodySchema = z.object({
     email: z.string().email(),
     password: z.string().min(8)
@@ -20,9 +29,18 @@ router.post("/auth/login", async (req, res) => {
     return res.status(400).json({ message: "Payload invalide." });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email }
-  });
+  let user;
+  try {
+    user = await prisma.user.findUnique({
+      where: { email: parsed.data.email }
+    });
+  } catch (error) {
+    console.error("Login DB error", error);
+    return res.status(503).json({
+      message:
+        "Base de données indisponible. Utilisez le mode démo visuel ou redémarrez PostgreSQL."
+    });
+  }
   if (!user || !user.isActive) {
     return res.status(401).json({ message: "Identifiants invalides." });
   }
@@ -45,6 +63,6 @@ router.post("/auth/login", async (req, res) => {
       fullName: user.fullName
     }
   });
-});
+}));
 
 export { router as publicRouter };
