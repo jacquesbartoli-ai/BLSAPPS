@@ -106,9 +106,10 @@ Fichier: `apps/api/prisma/schema.prisma`
 Le parseur OCR est volontairement laissé en placeholder:
 `apps/api/src/services/ocr/ocr-invoice.service.ts`
 
-👉 Merci de fournir:
-- identifiants Odoo (URL, DB, user, clé/API token)
-- ID du dossier Google Drive cible
-- plusieurs factures fournisseurs réelles (PDF/scans)
+👉 Données nécessaires pour activer les intégrations:
+- Odoo: `ODOO_BASE_URL` (domaine), `ODOO_DATABASE`, `ODOO_API_KEY` et soit `ODOO_USER_ID`, soit `ODOO_USERNAME`
+- Google Drive: `GOOGLE_DRIVE_FOLDER_ID` + (service account **ou** OAuth client + refresh token)
+- Google Vision OCR: `GOOGLE_VISION_API_KEY`
+- Plusieurs factures fournisseurs réelles (PDF/scans) pour entraîner les règles de mapping (produit, qty, prix, date, fournisseur)
 
-Dès réception, j’implémente l’extracteur OCR avec mapping robuste et création automatique des lots.
+Dès réception des factures exemples, j’active le mapping OCR structuré et la création automatique des lots.
