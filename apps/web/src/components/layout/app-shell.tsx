@@ -1,4 +1,5 @@
-import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { disableDemoMode, isDemoMode } from "../../lib/demo-mode";
 
 const items = [
   { to: "/stock", label: "Stock" },
@@ -14,15 +15,41 @@ const items = [
 
 export function AppShell() {
   const location = useLocation();
+  const navigate = useNavigate();
   const token = localStorage.getItem("accessToken");
-  if (!token) {
+  const demoMode = isDemoMode();
+
+  if (!token && !demoMode) {
     return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  function logout() {
+    disableDemoMode();
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userRole");
+    navigate("/login", { replace: true });
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-card p-4 shadow-sm">
-        <h1 className="text-lg font-semibold">Bartoli — Gestion artisanale</h1>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-semibold">Bartoli — Gestion artisanale</h1>
+            {demoMode ? (
+              <p className="mt-1 inline-block rounded-full bg-accent px-2 py-1 text-xs font-medium">
+                MODE DÉMO VISUEL
+              </p>
+            ) : null}
+          </div>
+          <button
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-accent"
+            onClick={logout}
+          >
+            Déconnexion
+          </button>
+        </div>
       </header>
       <nav className="sticky top-0 z-10 overflow-x-auto border-b border-border bg-card/90 backdrop-blur">
         <ul className="flex min-w-max gap-2 p-2">

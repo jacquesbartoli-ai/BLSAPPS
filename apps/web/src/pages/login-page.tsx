@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
+import { enableDemoMode } from "../lib/demo-mode";
 
 type LoginResponse = {
   accessToken: string;
@@ -39,6 +40,11 @@ export function LoginPage() {
     }
   }
 
+  function onDemo() {
+    enableDemoMode();
+    navigate("/stock", { replace: true });
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <form className="w-full max-w-sm space-y-4 rounded-xl border border-border bg-card p-6 shadow-md" onSubmit={onSubmit}>
@@ -67,6 +73,13 @@ export function LoginPage() {
           className="w-full rounded-md bg-primary px-3 py-2 font-medium text-primary-foreground disabled:opacity-70"
         >
           {loading ? "Connexion..." : "Se connecter"}
+        </button>
+        <button
+          type="button"
+          onClick={onDemo}
+          className="w-full rounded-md border border-border bg-background px-3 py-2 font-medium hover:bg-accent"
+        >
+          Entrer en mode démo visuel
         </button>
       </form>
     </div>

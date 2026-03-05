@@ -1,7 +1,14 @@
+import { handleDemoApiRequest } from "./demo-api";
+import { isDemoMode } from "./demo-mode";
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
 const secretPath = import.meta.env.VITE_SECRET_PATH ?? "espace-bartoli-xxxxx";
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  if (isDemoMode()) {
+    return handleDemoApiRequest<T>(path, init);
+  }
+
   const token = localStorage.getItem("accessToken");
   const response = await fetch(`${apiBaseUrl}/${secretPath}${path}`, {
     ...init,
