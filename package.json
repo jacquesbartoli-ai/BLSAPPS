@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:demo": "npm run dev:web",
     "dev:web": "npm run dev --workspace @bartoli/web",
     "dev:api": "npm run dev --workspace @bartoli/api",
     "build": "npm run build --workspace @bartoli/web && npm run build --workspace @bartoli/api",
