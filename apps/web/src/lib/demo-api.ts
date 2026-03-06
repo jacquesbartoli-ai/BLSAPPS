@@ -48,12 +48,30 @@ type DemoProduction = {
   }>;
 };
 
+type DemoImportedInvoice = {
+  id: string;
+  invoiceNumber: string | null;
+  invoiceDate: string | null;
+  supplierName: string;
+  pdfUrl: string;
+  createdAt: string;
+  lotCount: number;
+  lots: Array<{
+    id: string;
+    internalLotCode: string;
+    ingredientName: string;
+    receivedQty: string;
+    remainingQty: string;
+  }>;
+};
+
 type DemoDb = {
   suppliers: DemoSupplier[];
   ingredients: DemoIngredient[];
   lots: DemoLot[];
   recipes: DemoRecipe[];
   productions: DemoProduction[];
+  importedInvoices: DemoImportedInvoice[];
 };
 
 const DEMO_DB_KEY = "bartoliDemoDbV1";
@@ -148,6 +166,33 @@ function seedDemoDb(): DemoDb {
           { id: "pu-1", ingredientLotId: "lot-1", quantityUsed: 74.3 },
           { id: "pu-2", ingredientLotId: "lot-2", quantityUsed: 19.1 },
           { id: "pu-3", ingredientLotId: "lot-3", quantityUsed: 1.8 }
+        ]
+      }
+    ],
+    importedInvoices: [
+      {
+        id: "inv-demo-1",
+        invoiceNumber: "FR75800589715",
+        invoiceDate: "2026-01-08T00:00:00.000Z",
+        supplierName: "Origine T A",
+        pdfUrl: "/workspace/data/invoices/FACTURE_BAFFE_272024_20241029.pdf",
+        createdAt: "2026-03-05T08:45:00.000Z",
+        lotCount: 2,
+        lots: [
+          {
+            id: "lot-demo-ocr-1",
+            internalLotCode: "OCR-20260305-01-AB12",
+            ingredientName: "Mix saucisson sec",
+            receivedQty: "12.500",
+            remainingQty: "12.500"
+          },
+          {
+            id: "lot-demo-ocr-2",
+            internalLotCode: "OCR-20260305-02-CD34",
+            ingredientName: "Poivre noir entier bio",
+            receivedQty: "1.000",
+            remainingQty: "1.000"
+          }
         ]
       }
     ]
@@ -289,6 +334,101 @@ export async function handleDemoApiRequest<T>(path: string, init?: RequestInit):
 
   if (path === "/api/stock/overview" && method === "GET") {
     return asStockOverview(db) as T;
+  }
+
+  if (path === "/api/stock/invoices/local-files" && method === "GET") {
+    return {
+      files: [
+        {
+          name: "FACTURE_BAFFE_272024_20241029.pdf",
+          path: "/workspace/data/invoices/FACTURE_BAFFE_272024_20241029.pdf"
+        },
+        {
+          name: "boxtal_2600014186.pdf",
+          path: "/workspace/data/invoices/boxtal_2600014186.pdf"
+        },
+        {
+          name: "15-FACT-ARCHV-1515620931.PDF",
+          path: "/workspace/data/invoices/15-FACT-ARCHV-1515620931.PDF"
+        }
+      ]
+    } as T;
+  }
+
+  if (path === "/api/stock/invoices/imported" && method === "GET") {
+    return {
+      invoices: db.importedInvoices
+    } as T;
+  }
+
+  if (path === "/api/stock/invoices/drive-sync" && method === "POST") {
+    return {
+      folderId: "demo-folder",
+      scanned: 6,
+      downloadedCount: 3,
+      files: [
+        "/workspace/data/invoices/FACTURE_BAFFE_272024_20241029.pdf",
+        "/workspace/data/invoices/boxtal_2600014186.pdf",
+        "/workspace/data/invoices/15-FACT-ARCHV-1515620931.PDF"
+      ]
+    } as T;
+  }
+
+  if (path === "/api/stock/invoices/ocr-preview" && method === "POST") {
+    return {
+      extracted: {
+        supplierName: "Origine T A",
+        invoiceDate: "29/10/2024",
+        invoiceNumber: "FR75800589715",
+        invoiceType: "raw_materials",
+        globalConfidence: 0.71,
+        lines: [
+          { productName: "Mix figatelli bio", quantity: 3.08, unitPrice: 49.28, unit: "kg", confidence: 0.78 },
+          { productName: "Mix saucisson sec", quantity: 2.769, unitPrice: 83.07, unit: "kg", confidence: 0.74 },
+          { productName: "Poivre noir entier bio", quantity: 1, unitPrice: 10, unit: "kg", confidence: 0.7 }
+        ]
+      },
+      warning: "Extraction heuristique renforcée effectuée. Vérifier avant import automatique."
+    } as T;
+  }
+
+  if (path === "/api/stock/invoices/ocr-import" && method === "POST") {
+    const filePath = String(body.filePath ?? "/workspace/data/invoices/FACTURE_BAFFE_272024_20241029.pdf");
+    const supplier =
+      db.suppliers.find((entry) => entry.id === String(body.supplierId ?? ""))?.name ?? "Origine T A";
+
+    const createdInvoice: DemoImportedInvoice = {
+      id: id("inv"),
+      invoiceNumber: `OCR-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000 + 1000)}`,
+      invoiceDate: new Date().toISOString(),
+      supplierName: supplier,
+      pdfUrl: filePath,
+      createdAt: new Date().toISOString(),
+      lotCount: 2,
+      lots: [
+        {
+          id: id("ocr-lot"),
+          internalLotCode: `OCR-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-01-AX12`,
+          ingredientName: "Mix saucisson sec",
+          receivedQty: "8.000",
+          remainingQty: "8.000"
+        },
+        {
+          id: id("ocr-lot"),
+          internalLotCode: `OCR-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-02-BY34`,
+          ingredientName: "Poivre noir entier bio",
+          receivedQty: "1.000",
+          remainingQty: "1.000"
+        }
+      ]
+    };
+    db.importedInvoices.unshift(createdInvoice);
+    saveDb(db);
+
+    return {
+      acceptedLines: 2,
+      createdLots: createdInvoice.lots.map((lot) => ({ lotId: lot.id }))
+    } as T;
   }
 
   if (path === "/api/stock/suppliers" && method === "POST") {

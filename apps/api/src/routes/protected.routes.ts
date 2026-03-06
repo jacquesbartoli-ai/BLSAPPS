@@ -8,6 +8,8 @@ import { prisma } from "../lib/prisma.js";
 import { performBackupNow } from "../services/backup.service.js";
 import { generateDemoPdfs } from "../services/pdf/pdf-templates.service.js";
 import { importInvoiceFromOcr, previewInvoiceFromOcr } from "../services/ocr/ocr-import.service.js";
+import { syncInvoicesFromDrive } from "../services/ocr/ocr-drive-sync.service.js";
+import { assertInvoiceFilePath, listLocalInvoiceFiles } from "../services/ocr/ocr-storage.service.js";
 import { buildProductionLotNumber } from "../utils/lot-number.js";
 
 dayjs.extend(weekOfYear);
@@ -130,8 +132,15 @@ router.post(
       filePath: z.string().min(1)
     });
     const data = bodySchema.parse(req.body);
-    const preview = await previewInvoiceFromOcr(data.filePath);
-    res.json(preview);
+    try {
+      const filePath = assertInvoiceFilePath(data.filePath);
+      const preview = await previewInvoiceFromOcr(filePath);
+      res.json(preview);
+    } catch (error) {
+      return res.status(400).json({
+        message: error instanceof Error ? error.message : "Impossible de prévisualiser la facture OCR."
+      });
+    }
   })
 );
 
@@ -147,8 +156,88 @@ router.post(
       forceImport: z.boolean().default(false)
     });
     const data = bodySchema.parse(req.body);
-    const result = await importInvoiceFromOcr(data);
-    res.status(201).json(result);
+    try {
+      const filePath = assertInvoiceFilePath(data.filePath);
+      const result = await importInvoiceFromOcr({
+        ...data,
+        filePath
+      });
+      res.status(201).json(result);
+    } catch (error) {
+      return res.status(400).json({
+        message: error instanceof Error ? error.message : "Import OCR impossible."
+      });
+    }
+  })
+);
+
+router.get(
+  "/stock/invoices/local-files",
+  managerRole,
+  asyncHandler(async (_req, res) => {
+    const files = await listLocalInvoiceFiles();
+    res.json({ files });
+  })
+);
+
+router.post(
+  "/stock/invoices/drive-sync",
+  managerRole,
+  asyncHandler(async (req, res) => {
+    const bodySchema = z.object({
+      folderId: z.string().optional()
+    });
+    const data = bodySchema.parse(req.body ?? {});
+    try {
+      const result = await syncInvoicesFromDrive(data.folderId);
+      res.status(201).json(result);
+    } catch (error) {
+      return res.status(400).json({
+        message: error instanceof Error ? error.message : "Synchronisation Drive impossible."
+      });
+    }
+  })
+);
+
+router.get(
+  "/stock/invoices/imported",
+  managerRole,
+  asyncHandler(async (_req, res) => {
+    const invoices = await prisma.supplierInvoice.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        supplier: true,
+        lots: {
+          include: {
+            ingredient: true
+          },
+          orderBy: { createdAt: "desc" }
+        },
+        _count: {
+          select: { lots: true }
+        }
+      },
+      take: 100
+    });
+
+    const mapped = invoices.map((invoice) => ({
+      id: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      invoiceDate: invoice.invoiceDate,
+      supplierName: invoice.supplier.name,
+      pdfUrl: invoice.pdfUrl,
+      createdAt: invoice.createdAt,
+      status: invoice.status,
+      lotCount: invoice._count.lots,
+      lots: invoice.lots.map((lot) => ({
+        id: lot.id,
+        internalLotCode: lot.internalLotCode,
+        ingredientName: lot.ingredient.name,
+        receivedQty: lot.receivedQty,
+        remainingQty: lot.remainingQty
+      }))
+    }));
+    res.json({ invoices: mapped });
   })
 );
 

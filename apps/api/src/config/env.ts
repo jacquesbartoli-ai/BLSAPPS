@@ -20,6 +20,7 @@ const envSchema = z.object({
   ODOO_USERNAME: z.string().optional(),
   ODOO_USER_ID: z.coerce.number().int().positive().optional(),
   GOOGLE_DRIVE_FOLDER_ID: z.string().optional(),
+  GOOGLE_OCR_SAMPLE_FOLDER_ID: z.string().optional(),
   GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().optional(),
   GOOGLE_PRIVATE_KEY: z.string().optional(),
   GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
