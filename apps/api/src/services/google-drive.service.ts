@@ -16,7 +16,7 @@ function getAuth() {
   if (
     env.GOOGLE_OAUTH_CLIENT_ID &&
     env.GOOGLE_OAUTH_CLIENT_SECRET &&
-    env.GOOGLE_OAUTH_REFRESH_TOKEN
+    (env.GOOGLE_OAUTH_REFRESH_TOKEN || env.GOOGLE_OAUTH_ACCESS_TOKEN)
   ) {
     const oauth2 = new google.auth.OAuth2(
       env.GOOGLE_OAUTH_CLIENT_ID,
@@ -24,13 +24,14 @@ function getAuth() {
       env.GOOGLE_OAUTH_REDIRECT_URI
     );
     oauth2.setCredentials({
-      refresh_token: env.GOOGLE_OAUTH_REFRESH_TOKEN
+      refresh_token: env.GOOGLE_OAUTH_REFRESH_TOKEN,
+      access_token: env.GOOGLE_OAUTH_ACCESS_TOKEN
     });
     return oauth2;
   }
 
   throw new Error(
-    "Configuration Google Drive incomplète. Fournir soit un service account, soit OAuth client + refresh token."
+    "Configuration Google Drive incomplète. Fournir soit un service account, soit OAuth client + refresh/access token."
   );
 }
 

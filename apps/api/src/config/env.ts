@@ -26,6 +26,7 @@ const envSchema = z.object({
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
   GOOGLE_OAUTH_REDIRECT_URI: z.string().default("http://localhost"),
   GOOGLE_OAUTH_REFRESH_TOKEN: z.string().optional(),
+  GOOGLE_OAUTH_ACCESS_TOKEN: z.string().optional(),
   GOOGLE_VISION_API_KEY: z.string().optional()
 });
 

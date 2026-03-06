@@ -12,3 +12,4 @@ apps/api/generated
 apps/web/.vite
 *.sqlite
 *.tsbuildinfo
+data/
