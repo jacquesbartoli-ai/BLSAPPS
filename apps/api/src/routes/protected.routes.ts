@@ -7,6 +7,7 @@ import { requireRole } from "../middleware/auth.js";
 import { prisma } from "../lib/prisma.js";
 import { performBackupNow } from "../services/backup.service.js";
 import { generateDemoPdfs } from "../services/pdf/pdf-templates.service.js";
+import { importInvoiceFromOcr, previewInvoiceFromOcr } from "../services/ocr/ocr-import.service.js";
 import { buildProductionLotNumber } from "../utils/lot-number.js";
 
 dayjs.extend(weekOfYear);
@@ -118,6 +119,36 @@ router.post(
       return created;
     });
     res.status(201).json(lot);
+  })
+);
+
+router.post(
+  "/stock/invoices/ocr-preview",
+  managerRole,
+  asyncHandler(async (req, res) => {
+    const bodySchema = z.object({
+      filePath: z.string().min(1)
+    });
+    const data = bodySchema.parse(req.body);
+    const preview = await previewInvoiceFromOcr(data.filePath);
+    res.json(preview);
+  })
+);
+
+router.post(
+  "/stock/invoices/ocr-import",
+  managerRole,
+  asyncHandler(async (req, res) => {
+    const bodySchema = z.object({
+      filePath: z.string().min(1),
+      supplierId: z.string().optional(),
+      autoCreateIngredients: z.boolean().default(true),
+      minLineConfidence: z.coerce.number().min(0.3).max(0.95).default(0.58),
+      forceImport: z.boolean().default(false)
+    });
+    const data = bodySchema.parse(req.body);
+    const result = await importInvoiceFromOcr(data);
+    res.status(201).json(result);
   })
 );
 

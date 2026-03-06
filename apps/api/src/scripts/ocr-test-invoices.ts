@@ -28,7 +28,11 @@ async function main() {
     fileName: string;
     supplierName: string | null;
     invoiceDate: string | null;
+    invoiceNumber: string | null;
+    invoiceType: string;
+    globalConfidence: number;
     lineCount: number;
+    highConfidenceLineCount: number;
     warning: string;
   }> = [];
 
@@ -40,20 +44,28 @@ async function main() {
         fileName,
         supplierName: parsed.extracted.supplierName,
         invoiceDate: parsed.extracted.invoiceDate,
+        invoiceNumber: parsed.extracted.invoiceNumber,
+        invoiceType: parsed.extracted.invoiceType,
+        globalConfidence: parsed.extracted.globalConfidence,
         lineCount: parsed.extracted.lines.length,
+        highConfidenceLineCount: parsed.extracted.lines.filter((line) => line.confidence >= 0.58).length,
         warning: parsed.warning
       });
       console.log(
-        `[OK] ${fileName} | fournisseur=${parsed.extracted.supplierName ?? "-"} | date=${
+        `[OK] ${fileName} | type=${parsed.extracted.invoiceType} | fournisseur=${parsed.extracted.supplierName ?? "-"} | date=${
           parsed.extracted.invoiceDate ?? "-"
-        } | lignes=${parsed.extracted.lines.length}`
+        } | lignes=${parsed.extracted.lines.length} | confiance=${parsed.extracted.globalConfidence}`
       );
     } catch (error) {
       report.push({
         fileName,
         supplierName: null,
         invoiceDate: null,
+        invoiceNumber: null,
+        invoiceType: "error",
+        globalConfidence: 0,
         lineCount: 0,
+        highConfidenceLineCount: 0,
         warning: error instanceof Error ? error.message : "Erreur OCR inconnue"
       });
       console.log(`[ERR] ${fileName} | ${error instanceof Error ? error.message : "Erreur inconnue"}`);

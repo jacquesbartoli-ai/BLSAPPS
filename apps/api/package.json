@@ -16,7 +16,8 @@
     "google:oauth:url": "tsx src/scripts/google-oauth-drive.ts url",
     "google:oauth:exchange": "tsx src/scripts/google-oauth-drive.ts exchange",
     "drive:download:invoices": "tsx src/scripts/drive-download-folder.ts",
-    "ocr:test:invoices": "tsx src/scripts/ocr-test-invoices.ts"
+    "ocr:test:invoices": "tsx src/scripts/ocr-test-invoices.ts",
+    "ocr:import:invoices": "tsx src/scripts/ocr-import-invoices.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",

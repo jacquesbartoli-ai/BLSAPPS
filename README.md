@@ -127,6 +127,30 @@ Dès réception des factures exemples, j’active le mapping OCR structuré et l
    npm run ocr:test:invoices --workspace @bartoli/api
    ```
    Le rapport est généré dans `data/invoices/ocr-report.json`.
+4. (Optionnel) importer en base en batch:
+   ```bash
+   npm run ocr:import:invoices --workspace @bartoli/api
+   ```
+
+### Import OCR automatique en lots (API)
+
+- Preview OCR d'une facture locale:
+  - `POST /{APP_SECRET_PATH}/api/stock/invoices/ocr-preview`
+  - body:
+    ```json
+    { "filePath": "/workspace/data/invoices/FACTURE_X.pdf" }
+    ```
+- Import en base (création SupplierInvoice + IngredientLot + incrément stock):
+  - `POST /{APP_SECRET_PATH}/api/stock/invoices/ocr-import`
+  - body:
+    ```json
+    {
+      "filePath": "/workspace/data/invoices/FACTURE_X.pdf",
+      "autoCreateIngredients": true,
+      "minLineConfidence": 0.58,
+      "forceImport": false
+    }
+    ```
 
 ## Obtenir GOOGLE_OAUTH_REFRESH_TOKEN (Google Drive)
 
