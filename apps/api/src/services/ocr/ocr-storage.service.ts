@@ -34,7 +34,8 @@ export async function listLocalInvoiceFiles() {
 export function assertInvoiceFilePath(filePath: string) {
   const storageDir = getInvoiceStorageDir();
   const resolved = path.resolve(filePath);
-  if (!resolved.startsWith(storageDir)) {
+  const relativePath = path.relative(storageDir, resolved);
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
     throw new Error("Le fichier doit être dans le dossier local data/invoices.");
   }
   return resolved;
