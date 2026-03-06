@@ -362,6 +362,12 @@ router.post(
     });
     const data = bodySchema.parse(req.body);
     const productionDate = data.startedAt ? new Date(data.startedAt) : new Date();
+    const lotIds = data.usages.map((usage) => usage.ingredientLotId);
+    if (new Set(lotIds).size !== lotIds.length) {
+      return res.status(400).json({
+        message: "Chaque lot ne peut être utilisé qu'une seule fois par fabrication."
+      });
+    }
 
     const production = await prisma.$transaction(async (tx) => {
       const recipe = await tx.recipe.findUnique({
@@ -371,7 +377,6 @@ router.post(
         throw new Error("Recette introuvable.");
       }
 
-      const lotIds = data.usages.map((usage) => usage.ingredientLotId);
       const lots = await tx.ingredientLot.findMany({
         where: { id: { in: lotIds } }
       });
